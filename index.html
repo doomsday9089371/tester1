@@ -49,15 +49,14 @@
         import { getDatabase, ref, set, onValue } from "https://gstatic.com";
 
         // ⚠️ REPLACE THIS WITH YOUR FIREBASE CONFIG
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_://firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT_://firebaseio.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_://appspot.com",
-            messagingSenderId: "YOUR_ID",
-            appId: "YOUR_APP_ID"
-        };
+        var admin = require("firebase-admin");
+
+        var serviceAccount = require("path/to/serviceAccountKey.json");
+
+        admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+            databaseURL: "https://test-74e29-default-rtdb.firebaseio.com"
+        });
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
