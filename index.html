@@ -49,14 +49,17 @@
         import { getDatabase, ref, set, onValue } from "https://gstatic.com";
 
         // ⚠️ REPLACE THIS WITH YOUR FIREBASE CONFIG
-        var admin = require("firebase-admin");
-
-        var serviceAccount = require("path/to/serviceAccountKey.json");
-
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-            databaseURL: "https://test-74e29-default-rtdb.firebaseio.com"
-        });
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+            apiKey: "AIzaSyAJ316tieA2EGV8cZCZu4GyZoStKmnT0d8",
+            authDomain: "test-74e29.firebaseapp.com",
+            databaseURL: "https://test-74e29-default-rtdb.firebaseio.com",
+            projectId: "test-74e29",
+            storageBucket: "test-74e29.firebasestorage.app",
+            messagingSenderId: "697014058112",
+            appId: "1:697014058112:web:a3e18af0955153ad49fa65",
+            measurementId: "G-EDBE32G1BP"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
