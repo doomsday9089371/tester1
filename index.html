@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual Confirmation System</title>
+    <script src="https://tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="max-w-md w-full bg-slate-800 p-8 rounded-2xl shadow-2xl border border-slate-700 text-center">
+        <h1 class="text-2xl font-bold mb-6 tracking-wide text-indigo-400">Dual-Device Confirmation</h1>
+        
+        <!-- Role Selection -->
+        <div id="role-selection" class="mb-8">
+            <p class="text-slate-400 mb-3 text-sm">Select your device role:</p>
+            <div class="flex gap-4 justify-center">
+                <button onclick="setRole('user1')" id="btn-role1" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition font-medium">Person 1</button>
+                <button onclick="setRole('user2')" id="btn-role2" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition font-medium">Person 2</button>
+            </div>
+        </div>
+
+        <!-- Status Dashboard -->
+        <div class="space-y-4 mb-8">
+            <div class="flex justify-between items-center bg-slate-900/50 p-3 rounded-lg">
+                <span class="text-slate-400">Person 1 Status:</span>
+                <span id="status-user1" class="font-bold text-amber-500">Waiting...</span>
+            </div>
+            <div class="flex justify-between items-center bg-slate-900/50 p-3 rounded-lg">
+                <span class="text-slate-400">Person 2 Status:</span>
+                <span id="status-user2" class="font-bold text-amber-500">Waiting...</span>
+            </div>
+        </div>
+
+        <!-- Action Button -->
+        <button id="action-btn" disabled onclick="toggleConfirmation()" class="w-full py-4 bg-slate-600 cursor-not-allowed text-lg font-bold rounded-xl transition-all duration-300 shadow-lg">
+            Select a Role First
+        </button>
+
+        <!-- Reset Button -->
+        <button onclick="resetSystem()" class="mt-6 text-xs text-slate-500 hover:text-slate-400 underline tracking-wider uppercase">
+            Reset System
+        </button>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://gstatic.com";
+        import { getDatabase, ref, set, onValue } from "https://gstatic.com";
+
+        // ⚠️ REPLACE THIS WITH YOUR FIREBASE CONFIG
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_://firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_://firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_://appspot.com",
+            messagingSenderId: "YOUR_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const statusRef = ref(db, 'confirmation_room/status');
+
+        let myRole = null;
+        let currentStatus = { user1: false, user2: false };
+
+        // Expose functions to window for HTML onclick attributes
+        window.setRole = (role) => {
+            myRole = role;
+            document.getElementById('btn-role1').className = role === 'user1' ? 'px-4 py-2 bg-indigo-600 rounded-lg font-medium' : 'px-4 py-2 bg-slate-700 rounded-lg opacity-50';
+            document.getElementById('btn-role2').className = role === 'user2' ? 'px-4 py-2 bg-indigo-600 rounded-lg font-medium' : 'px-4 py-2 bg-slate-700 rounded-lg opacity-50';
+            updateButtonUI();
+        };
+
+        window.toggleConfirmation = () => {
+            if (!myRole) return;
+            currentStatus[myRole] = !currentStatus[myRole];
+            set(statusRef, currentStatus);
+        };
+
+        window.resetSystem = () => {
+            set(statusRef, { user1: false, user2: false });
+        };
+
+        // Listen for Realtime updates
+        onValue(statusRef, (snapshot) => {
+            const data = snapshot.val() || { user1: false, user2: false };
+            currentStatus = data;
+
+            // Update Status text
+            document.getElementById('status-user1').textContent = data.user1 ? 'READY ✅' : 'Waiting...';
+            document.getElementById('status-user1').className = data.user1 ? 'font-bold text-emerald-400' : 'font-bold text-amber-500';
+            
+            document.getElementById('status-user2').textContent = data.user2 ? 'READY ✅' : 'Waiting...';
+            document.getElementById('status-user2').className = data.user2 ? 'font-bold text-emerald-400' : 'font-bold text-amber-500';
+
+            updateButtonUI();
+        });
+
+        function updateButtonUI() {
+            const btn = document.getElementById('action-btn');
+            
+            if (!myRole) {
+                btn.disabled = true;
+                btn.textContent = "Select a Role First";
+                return;
+            }
+
+            // Global State: Both confirmed
+            if (currentStatus.user1 && currentStatus.user2) {
+                btn.disabled = true;
+                btn.className = "w-full py-4 bg-emerald-500 text-white text-lg font-bold rounded-xl shadow-emerald-500/20 shadow-xl animate-pulse";
+                btn.textContent = "💥 ALL SYSTEMS GO / CONFIRMED";
+                return;
+            }
+
+            // Local State: Am I ready?
+            const amIReady = currentStatus[myRole];
+            btn.disabled = false;
+            if (amIReady) {
+                btn.className = "w-full py-4 bg-rose-600 hover:bg-rose-500 text-white text-lg font-bold rounded-xl transition-all cursor-pointer";
+                btn.textContent = "Cancel My Confirmation";
+            } else {
+                btn.className = "w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white text-lg font-bold rounded-xl transition-all cursor-pointer";
+                btn.textContent = "Confirm Ready";
+            }
+        }
+    </script>
+</body>
+</html>
